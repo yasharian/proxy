@@ -8,8 +8,7 @@ cat > /usr/local/etc/xray/config.json << 'EOF'
       "settings": {
         "clients": [
           {
-            "id": "ba360d83-45d0-44d1-b223-f7b26503d184",
-            "encryption": "none"
+            "id": "ba360d83-45d0-44d1-b223-f7b26503d184"
           }
         ],
         "decryption": "none"
