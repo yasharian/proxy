@@ -1,0 +1,20 @@
+/* Tapsi Brand Styles */
+:root {
+  --primary: #7C3AED;
+  --primary-dark: #6D28D9;
+  --primary-light: #A855F7;
+  --accent: #FF6B35;
+  --text: #1F2937;
+  --text-light: #6B7280;
+  --bg: #F8F9FA;
+  --white: #FFFFFF;
+}
+
+@font-face {
+  font-family: 'IranSans';
+  src: local('Tahoma');
+}
+
+* {
+  font-family: 'IranSans', 'Tahoma', sans-serif;
+}
