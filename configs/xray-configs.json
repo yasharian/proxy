@@ -4,7 +4,7 @@
   },
   "inbounds": [
     {
-      "tag": "ws-main",
+      "tag": "ws-direct",
       "port": 80,
       "protocol": "vless",
       "settings": {
