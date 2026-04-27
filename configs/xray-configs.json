@@ -4,6 +4,74 @@
   },
   "inbounds": [
     {
+      "tag": "reality-tapsi",
+      "port": 443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "ba360d83-45d0-44d1-b223-f7b26503d184",
+            "flow": "xtls-rprx-vision"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "show": false,
+          "dest": "tapsi.ir:443",
+          "xver": 0,
+          "serverNames": [
+            "tapsi.ir",
+            "snapp.ir",
+            "liara.ir"
+          ],
+          "privateKey": "kAxMhojriZm912deCi8rrAH9A7lRQnjHpgSyrw-Ty2k",
+          "shortIds": [""]
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
+      "tag": "reality-letsencrypt",
+      "port": 8443,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "ba360d83-45d0-44d1-b223-f7b26503d184",
+            "flow": "xtls-rprx-vision"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "show": false,
+          "dest": "letsencrypt.org:443",
+          "xver": 0,
+          "serverNames": [
+            "letsencrypt.org",
+            "github.com",
+            "deepseek.com"
+          ],
+          "privateKey": "kAxMhojriZm912deCi8rrAH9A7lRQnjHpgSyrw-Ty2k",
+          "shortIds": [""]
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    },
+    {
       "tag": "ws-api",
       "port": 10000,
       "listen": "127.0.0.1",
@@ -71,40 +139,6 @@
         "network": "ws",
         "wsSettings": {
           "path": "/v1/api"
-        }
-      },
-      "sniffing": {
-        "enabled": true,
-        "destOverride": ["http", "tls"]
-      }
-    },
-    {
-      "tag": "reality-tcp",
-      "port": 443,
-      "protocol": "vless",
-      "settings": {
-        "clients": [
-          {
-            "id": "ba360d83-45d0-44d1-b223-f7b26503d184",
-            "flow": "xtls-rprx-vision"
-          }
-        ],
-        "decryption": "none"
-      },
-      "streamSettings": {
-        "network": "tcp",
-        "security": "reality",
-        "realitySettings": {
-          "show": false,
-          "dest": "www.google.com:443",
-          "xver": 0,
-          "serverNames": [
-            "www.google.com",
-            "www.youtube.com",
-            "www.github.com"
-          ],
-          "privateKey": "kAxMhojriZm912deCi8rrAH9A7lRQnjHpgSyrw-Ty2k",
-          "shortIds": [""]
         }
       },
       "sniffing": {

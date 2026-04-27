@@ -8,6 +8,7 @@ echo "========================================="
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
 NC='\033[0m'
 
 # Check root
@@ -17,96 +18,62 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # Variables
-UUID="ba360d83-45d0-44d1-b223-f7b26503d184"       # CHANGE THIS
-PRIVATE_KEY="kAxMhojriZm912deCi8rrAH9A7lRQnjHpgSyrw-Ty2k"  # CHANGE THIS
-PUBLIC_KEY="W5AWCExiWXcFQP13wrnB9IXTsOMoff60HebwLzIW2Vk"   # CHANGE THIS
-DOMAIN="pv.yasharian.ir"
-VPS_IP="154.211.2.129"
-EMAIL="admin@yasharian.ir"
+export UUID="ba360d83-45d0-44d1-b223-f7b26503d184"
+export PRIVATE_KEY="kAxMhojriZm912deCi8rrAH9A7lRQnjHpgSyrw-Ty2k"
+export PUBLIC_KEY="W5AWCExiWXcFQP13wrnB9IXTsOMoff60HebwLzIW2Vk"
+export DOMAIN="pv.yasharian.ir"
+export VPS_IP="154.211.2.129"
+export EMAIL="admin@yasharian.ir"
 
-echo -e "${GREEN}[1/7] Updating system...${NC}"
-apt update && apt upgrade -y
+# Make scripts executable
+chmod +x scripts/*.sh
 
-echo -e "${GREEN}[2/7] Installing packages...${NC}"
-apt install -y nginx unzip wget curl
+# Run each step
+echo -e "${GREEN}[1/7] Installing system packages...${NC}"
+bash scripts/install-packages.sh
 
-echo -e "${GREEN}[3/7] Installing xray...${NC}"
+echo -e "${GREEN}[2/7] Installing xray core...${NC}"
 bash scripts/install-xray.sh
 
-echo -e "${GREEN}[4/7] Copying configs...${NC}"
-# xray config
-mkdir -p /usr/local/etc/xray
-sed -e "s/YOUR_UUID/$UUID/g" \
-    -e "s/YOUR_PRIVATE_KEY/$PRIVATE_KEY/g" \
-    configs/xray-config.json > /usr/local/etc/xray/config.json
+echo -e "${GREEN}[3/7] Setting up website files...${NC}"
+bash scripts/setup-website.sh
 
-# nginx config
-cp configs/nginx-default /etc/nginx/sites-available/default
+echo -e "${GREEN}[4/7] Configuring nginx...${NC}"
+bash scripts/setup-nginx.sh
 
-# website
-cp configs/index.html /var/www/html/index.html
+echo -e "${GREEN}[5/7] Configuring xray...${NC}"
+bash scripts/setup-xray.sh
 
-echo -e "${GREEN}[5/7] Getting SSL certificate...${NC}"
-bash scripts/get-ssl.sh "$DOMAIN" "$EMAIL"
-
-echo -e "${GREEN}[6/7] Setting permissions...${NC}"
-chown -R www-data:www-data /var/www/html
-nginx -t
+echo -e "${GREEN}[6/7] Getting SSL certificate...${NC}"
+bash scripts/setup-ssl.sh
 
 echo -e "${GREEN}[7/7] Starting services...${NC}"
-systemctl restart nginx
-systemctl restart xray
-systemctl enable nginx xray
+bash scripts/start-services.sh
 
-# Firewall
-ufw allow 80/tcp
-ufw allow 443/tcp
-ufw allow 22/tcp
-ufw --force enable
-
-# Auto-renew SSL
-echo "0 3 * * * certbot renew --quiet && systemctl reload nginx" | crontab -
-
+# Print client configs
 echo ""
 echo "========================================="
 echo -e "${GREEN}Setup Complete!${NC}"
 echo "========================================="
 echo ""
-echo "Client config (WebSocket):"
-echo "Address: $DOMAIN"
-echo "Port: 443"
-echo "UUID: $UUID"
-echo "Network: ws"
-echo "Path: /api"
-echo "Host: $DOMAIN"
-echo "TLS: ON"
+echo -e "Nginx: $(systemctl is-active nginx)"
+echo -e "Xray:  $(systemctl is-active xray)"
 echo ""
-echo "vless link:"
-echo "vless://$UUID@$DOMAIN:443?encryption=none&type=ws&path=/api&host=$DOMAIN&security=tls&sni=$DOMAIN#Amsterdam-WS"
+echo "Listening ports:"
+ss -tlnp | grep -E ':(80|443|8443|10000|10001|10002) ' 2>/dev/null || true
 echo ""
 echo "========================================="
-
-echo -e "${GREEN}[4/7] Copying website files...${NC}"
-
-# Create directory structure
-mkdir -p /var/www/html/pages /var/www/html/assets /var/www/html/api
-
-# Main pages
-cp configs/tapsi.html /var/www/html/tapsi.html
-cp configs/tapsi-app.html /var/www/html/tapsi-app.html
-cp configs/tapsi-api.html /var/www/html/api/index.html
-cp configs/index.html /var/www/html/index.html
-
-# Sub-pages
-cp pages/faq.html /var/www/html/pages/faq.html
-cp pages/contact.html /var/www/html/pages/contact.html
-cp pages/driver.html /var/www/html/pages/driver.html
-
-# Assets
-cp assets/style.css /var/www/html/assets/style.css
-
-# Set nginx as default index
-ln -sf /var/www/html/tapsi.html /var/www/html/index.html 2>/dev/null || true
-
-# Permissions
-chown -R www-data:www-data /var/www/html
+echo -e "${YELLOW}Client Configs:${NC}"
+echo "========================================="
+echo ""
+echo -e "${GREEN}WebSocket + TLS (Primary):${NC}"
+echo "vless://$UUID@$DOMAIN:443?encryption=none&type=ws&path=/api&host=$DOMAIN&security=tls&sni=$DOMAIN#WS-API"
+echo ""
+echo -e "${GREEN}Reality via tapsi.ir (Backup):${NC}"
+echo "vless://$UUID@$VPS_IP:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=tapsi.ir&fp=chrome&pbk=$PUBLIC_KEY&type=tcp#Tapsi"
+echo ""
+echo -e "${GREEN}Reality via letsencrypt (Backup 2):${NC}"
+echo "vless://$UUID@$VPS_IP:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=letsencrypt.org&fp=chrome&pbk=$PUBLIC_KEY&type=tcp#LetsEncrypt"
+echo ""
+echo -e "${YELLOW}Fake website: https://$DOMAIN${NC}"
+echo "========================================="
